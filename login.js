@@ -5,7 +5,7 @@ function login() {
 
     // Usuário e senha fixos
     const userFixed = "assinante";
-    const passFixed = "dec0rus2025";
+    const passFixed = "biblioteca";
 
     // Códigos de verificação variáveis para cada mês
     const codes = {
