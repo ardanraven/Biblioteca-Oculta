@@ -1,4 +1,15 @@
 // Verifica se o usuário está autenticado antes de carregar a biblioteca
+// Verifica se o mês mudou e força logout
+const currentMonth = new Date().getMonth();
+const storedMonth = localStorage.getItem("month");
+
+if (storedMonth === null || parseInt(storedMonth) !== currentMonth) {
+    localStorage.removeItem("auth"); // Remove o login
+    localStorage.setItem("month", currentMonth); // Atualiza o mês salvo
+    window.location.href = "login.html"; // Redireciona para login
+}
+
+
 if (localStorage.getItem("auth") !== "true") {
     window.location.href = "login.html"; // Redireciona para o login
 }
@@ -48,3 +59,13 @@ function logout() {
     localStorage.removeItem("auth"); // Remove a autenticação
     window.location.href = "login.html"; // Redireciona para a tela de login
 }
+
+
+
+
+
+
+
+
+
+
