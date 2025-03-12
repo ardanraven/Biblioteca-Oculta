@@ -4,7 +4,7 @@ function login() {
     const verificationCode = document.getElementById("verificationCode").value;
 
     // Usuário e senha fixos
-    const userFixed = "assinante";
+    const userFixed = "admin";
     const passFixed = "oculta2025";
 
     // Códigos de verificação variáveis para cada mês
