@@ -85,3 +85,43 @@ header {
 .pdf-item a:hover {
     background: var(--cor-clara);
 }
+
+.login-container {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    background: var(--cor-secundaria);
+    color: var(--texto-claro);
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.login-container input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid var(--cor-clara);
+    border-radius: 5px;
+    background: var(--cor-primaria);
+    color: var(--texto-claro);
+}
+
+.login-container button {
+    background: var(--cor-clara);
+    color: var(--texto-escuro);
+    padding: 10px;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.login-container button:hover {
+    background: var(--cor-primaria);
+}
+
+#error-message {
+    color: red;
+    margin-top: 10px;
+}

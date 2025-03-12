@@ -1,3 +1,8 @@
+// Verifica se o usuário está autenticado antes de carregar a biblioteca
+if (localStorage.getItem("auth") !== "true") {
+    window.location.href = "login.html"; // Redireciona para o login
+}
+
 const scriptUrl = "https://script.google.com/macros/s/AKfycbz2KCdiyX_2vLjL2FykazpJegHexdWbQHMprc0DbFXVvrQ62d1VrG5Y21ZYj4YJfJb3UQ/exec"; // Link do Apps Script
 let pdfData = []; // Variável para armazenar os PDFs
 
@@ -38,3 +43,8 @@ document.getElementById("search").addEventListener("input", function() {
 
 // Chama a função inicial para carregar os PDFs
 getPdfList();
+
+function logout() {
+    localStorage.removeItem("auth"); // Remove a autenticação
+    window.location.href = "login.html"; // Redireciona para a tela de login
+}
