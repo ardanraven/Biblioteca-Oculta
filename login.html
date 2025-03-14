@@ -3,18 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Biblioteca Decorus</title>
+    <title>Login - Biblioteca Oculta</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- POP-UP DE AVISO -->
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>⚠️ Aviso Importante ⚠️</h2>
+            <p>🔮 É <strong>proibido compartilhar contas</strong>. O sistema detecta acessos irregulares e remove a assinatura <strong>sem direito a reembolso</strong>.</p>
+            <p>🌿 Após o primeiro acesso bem-sucedido, <strong>não haverá mais reembolso</strong>. 🌸</p>
+            <button id="agree-btn">✨ Concordo ✨</button>
+        </div>
+    </div>
+    
+    <!-- FORMULÁRIO DE LOGIN -->
     <div class="login-container">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Usuário">
-        <input type="password" id="password" placeholder="Senha">
-        <input type="text" id="verificationCode" placeholder="Código de Verificação">
-        <button onclick="login()">Entrar</button>
+        <h1 class="titulo-login">✨ Biblioteca Oculta ✨</h1>
+        <h2>🔑 Login 🔑</h2>
+        <input type="text" id="username" placeholder="🧙 Usuário">
+        <input type="password" id="password" placeholder="🔒 Senha">
+        <input type="text" id="verificationCode" placeholder="🔢 Código de Verificação">
+        <button onclick="login()">🔮 Entrar</button>
         <p id="error-message"></p>
     </div>
+    
+    <!-- SCRIPT PARA FECHAR O POPUP -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const popup = document.getElementById("popup");
+            const agreeBtn = document.getElementById("agree-btn");
+            
+            popup.style.display = "flex";
+            agreeBtn.addEventListener("click", function() {
+                popup.style.display = "none";
+            });
+        });
+    </script>
+    
     <script src="login.js"></script>
 </body>
 </html>
