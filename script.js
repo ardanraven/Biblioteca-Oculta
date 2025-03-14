@@ -1,5 +1,4 @@
 // Verifica se o usuário está autenticado antes de carregar a biblioteca
-// Verifica se o mês mudou e força logout
 const currentMonth = new Date().getMonth();
 const storedMonth = localStorage.getItem("month");
 
@@ -9,27 +8,36 @@ if (storedMonth === null || parseInt(storedMonth) !== currentMonth) {
     window.location.href = "login.html"; // Redireciona para login
 }
 
-
 if (localStorage.getItem("auth") !== "true") {
     window.location.href = "login.html"; // Redireciona para o login
 }
 
-const scriptUrl = "https://script.google.com/macros/s/AKfycbz2KCdiyX_2vLjL2FykazpJegHexdWbQHMprc0DbFXVvrQ62d1VrG5Y21ZYj4YJfJb3UQ/exec"; // Link do Apps Script
-let pdfData = []; // Variável para armazenar os PDFs
+// Links do Apps Script para as bibliotecas
+const scriptUrl = "https://script.google.com/macros/s/AKfycbz2KCdiyX_2vLjL2FykazpJegHexdWbQHMprc0DbFXVvrQ62d1VrG5Y21ZYj4YJfJb3UQ/exec"; // Biblioteca principal
+const scriptUrlVariados = "https://script.google.com/macros/s/AKfycbyta87I-xp_BTLtpt7jZl29xR9t2GLsDvVDZfSY_Muqa7WB3d3-9nwFClcQntAeKrqxcQ/exec"; // Biblioteca de variados
 
-async function getPdfList() {
+let pdfData = []; // Variável para armazenar os PDFs
+const btnVariados = document.getElementById("variados");
+const btnVoltar = document.getElementById("voltar");
+
+// Função para buscar e exibir PDFs
+async function getPdfList(url) {
     try {
-        let response = await fetch(scriptUrl);
-        pdfData = await response.json(); // Armazena os PDFs na variável global
-        displayPdfList(pdfData); // Chama a função para exibir os livros
+        let response = await fetch(url);
+        pdfData = await response.json();
+
+        console.log("Dados carregados:", pdfData); // Log para depuração
+        displayPdfList(pdfData); // Exibir os livros
+
     } catch (error) {
         console.error("Erro ao buscar arquivos:", error);
     }
 }
 
+// Exibir os PDFs na tela
 function displayPdfList(data) {
     let pdfList = document.getElementById("pdf-list");
-    pdfList.innerHTML = "";
+    pdfList.innerHTML = ""; // Limpa a lista antes de carregar novos itens
 
     data.forEach(file => {
         let pdfItem = document.createElement("div");
@@ -52,20 +60,31 @@ document.getElementById("search").addEventListener("input", function() {
     displayPdfList(filteredData);
 });
 
-// Chama a função inicial para carregar os PDFs
-getPdfList();
+// Carregar PDFs da biblioteca principal no início
+getPdfList(scriptUrl);
 
+// Alternar para a pasta de variados
+function loadVariados() {
+    console.log("Carregando a pasta de variados...");
+    
+    btnVariados.style.display = "none";
+    btnVoltar.style.display = "inline-block";
+
+    getPdfList(scriptUrlVariados); // Carregar PDFs da nova pasta
+}
+
+// Voltar para a biblioteca principal
+function loadPrincipal() {
+    console.log("Voltando para a biblioteca principal...");
+
+    btnVariados.style.display = "inline-block";
+    btnVoltar.style.display = "none";
+
+    getPdfList(scriptUrl); // Carregar PDFs da biblioteca principal
+}
+
+// Logout do usuário
 function logout() {
     localStorage.removeItem("auth"); // Remove a autenticação
     window.location.href = "login.html"; // Redireciona para a tela de login
 }
-
-
-
-
-
-
-
-
-
-
