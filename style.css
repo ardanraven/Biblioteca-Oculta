@@ -470,12 +470,12 @@ header {
 
 /* ======= CURSOR PERSONALIZADO - VELA 🔥 ======= */
 body {
-  cursor: url('/cursor-vela.png') 10 10, auto;
+  cursor: url('https://ardanraven.github.io/Biblioteca-Oculta/cursor-vela.png') 10 10, auto;
 }
 
 /* Garante que o cursor de vela se mantenha em botões e links */
 button, a, input, textarea {
-  cursor: url('/cursor-vela.png') 10 10, auto;
+  cursor: url('https://ardanraven.github.io/Biblioteca-Oculta/cursor-vela.png') 10 10, auto;
 }
 
 
