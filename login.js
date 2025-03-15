@@ -1,47 +1,41 @@
-function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const verificationCode = document.getElementById("verificationCode").value;
+const repoOwner = "ardanraven"; // Substitua pelo seu usuário ou organização no GitHub
+const repoName = "Biblioteca-Oculta"; // Substitua pelo nome do seu repositório
+const filePath = "accounts.json"; // Caminho do arquivo no repositório
+const githubToken = "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"; // Substitua pelo token gerado no GitHub
 
-    // Usuário e senha fixos
-    const userFixed = "admin";
-    const passFixed = "oculta2025";
-
-    // Códigos de verificação variáveis para cada mês
-    const codes = {
-        0: "947312",  // Janeiro
-        1: "385726",  // Fevereiro
-        2: "628491",  // Março
-        3: "714953",  // Abril
-        4: "259684",  // Maio
-        5: "837415",  // Junho
-        6: "190537",  // Julho
-        7: "573829",  // Agosto
-        8: "462918",  // Setembro
-        9: "395672",  // Outubro
-        10: "841256", // Novembro
-        11: "720384"  // Dezembro
-    };
-
-    // Obtém o código correto para o mês atual
-    const currentMonth = new Date().getMonth();
-    const correctCode = codes[currentMonth];
-
-    if (username === userFixed && password === passFixed) {
-        if (verificationCode === correctCode) {
-            localStorage.setItem("auth", "true");
-            window.location.href = "index.html";
-        } else {
-            document.getElementById("error-message").innerText = "Código de verificação incorreto!";
+async function getAccounts() {
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+    
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: "application/vnd.github.v3+json"
         }
-    } else {
-        document.getElementById("error-message").innerText = "Usuário ou senha incorretos!";
-    }
+    });
+
+    const data = await response.json();
+    const content = atob(data.content); // Decodifica o conteúdo Base64
+    return JSON.parse(content); // Retorna o conteúdo JSON
 }
 
-// Bloqueia o site se não estiver autenticado
-if (window.location.pathname.includes("index.html")) {
-    if (localStorage.getItem("auth") !== "true") {
-        window.location.href = "login.html";
+async function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    const accounts = await getAccounts();
+    const userAccount = accounts.find(acc => acc.username === username);
+
+    if (userAccount) {
+        const now = new Date();
+        if (new Date(userAccount.expiration) > now && userAccount.password === password) {
+            localStorage.setItem("auth", "true");
+            window.location.href = "index.html";
+        } else if (new Date(userAccount.expiration) <= now) {
+            document.getElementById("error-message").innerText = "Conta expirada!";
+        } else {
+            document.getElementById("error-message").innerText = "Senha incorreta!";
+        }
+    } else {
+        document.getElementById("error-message").innerText = "Usuário não encontrado!";
     }
 }

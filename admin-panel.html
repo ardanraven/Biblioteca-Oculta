@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Painel Administrativo 🔐</h1>
+    </header>
+
+    <main>
+        <!-- Login do Admin -->
+        <section id="admin-login-section">
+            <h2>Login de Admin</h2>
+            <input type="password" id="admin-password" placeholder="Senha do Admin">
+            <button onclick="loginAdmin()">Entrar</button>
+            <p id="admin-error-message" style="color: red;"></p>
+        </section>
+
+        <!-- Painel de Administração -->
+        <section id="admin-panel-section" style="display: none;">
+            <h2>Criar Conta</h2>
+            <input type="text" id="username" placeholder="Nome de Usuário">
+            <select id="validity">
+                <option value="1">1 Mês</option>
+                <option value="12">1 Ano</option>
+            </select>
+            <button onclick="createAccount()">Criar Conta</button>
+            <p id="generated-password" style="color: green;"></p>
+
+            <h2>Contas Ativas</h2>
+            <div id="active-accounts"></div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
