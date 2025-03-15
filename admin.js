@@ -1,9 +1,25 @@
-const repoOwner = "ardanraven"; // Substitua pelo nome do seu usuário ou organização no GitHub
-const repoName = "Biblioteca-Oculta"; // Substitua pelo nome do repositório
-const filePath = "accounts.json"; // Caminho do arquivo no repositório
-const githubToken = "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"; // Substitua pelo token gerado no GitHub
+const repoOwner = "ardanraven"; // Nome do seu usuário no GitHub
+const repoName = "Biblioteca-Oculta"; // Nome do repositório
+const filePath = "accounts.json"; // Arquivo de contas no repositório
+const githubToken = "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"; // Token gerado no GitHub
 const adminPassword = "judas989"; // Senha do admin
 
+// Login do Admin
+function loginAdmin() {
+    const inputPassword = document.getElementById("admin-password").value;
+    console.log("Senha digitada:", inputPassword);
+
+    if (inputPassword === adminPassword) {
+        console.log("Senha correta! Acessando painel...");
+        document.getElementById("admin-login-section").style.display = "none";
+        document.getElementById("admin-panel-section").style.display = "block";
+    } else {
+        console.log("Senha incorreta!");
+        document.getElementById("admin-error-message").innerText = "Senha incorreta!";
+    }
+}
+
+// Obter Contas
 async function getAccounts() {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
     
@@ -16,13 +32,13 @@ async function getAccounts() {
 
     const data = await response.json();
     const content = atob(data.content); // Decodifica o conteúdo Base64
+    console.log("Contas obtidas:", content);
     return JSON.parse(content); // Retorna o conteúdo JSON
 }
 
+// Atualizar Contas
 async function updateAccounts(accounts) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    
-    // Busca o SHA atual do arquivo (necessário para commit)
     const response = await fetch(url, {
         headers: {
             Authorization: `Bearer ${githubToken}`,
@@ -32,10 +48,8 @@ async function updateAccounts(accounts) {
     const data = await response.json();
     const sha = data.sha;
 
-    // Codifica o novo conteúdo em Base64
     const updatedContent = btoa(JSON.stringify(accounts, null, 2));
 
-    // Atualiza o arquivo no GitHub
     await fetch(url, {
         method: "PUT",
         headers: {
@@ -51,6 +65,7 @@ async function updateAccounts(accounts) {
     });
 }
 
+// Criar Conta
 async function createAccount() {
     const username = document.getElementById("username").value;
     const validity = parseInt(document.getElementById("validity").value);
@@ -70,7 +85,6 @@ async function createAccount() {
         expiration: expirationDate.toISOString()
     };
 
-    // Obtém contas existentes, adiciona a nova conta e atualiza o arquivo
     const accounts = await getAccounts();
     accounts.push(newAccount);
     await updateAccounts(accounts);
@@ -78,6 +92,7 @@ async function createAccount() {
     alert(`Conta criada com sucesso!\nUsuário: ${username}\nSenha: ${password}`);
 }
 
+// Gerar Senha
 function generatePassword(length = 8) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let password = "";
