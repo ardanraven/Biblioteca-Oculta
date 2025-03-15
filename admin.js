@@ -41,18 +41,21 @@ async function getAccounts() {
 async function updateAccounts(accounts) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
     try {
+        console.log("Buscando o SHA do arquivo...");
         const response = await fetch(url, {
             headers: {
                 Authorization: `Bearer ${githubToken}`,
                 Accept: "application/vnd.github.v3+json"
             }
         });
-        if (!response.ok) throw new Error(`Erro ao buscar SHA do arquivo: ${response.status}`);
-        
+
+        if (!response.ok) throw new Error(`Erro ao buscar SHA do arquivo: ${response.status} - ${response.statusText}`);
+
         const data = await response.json();
-        const sha = data.sha;
+        console.log("SHA do arquivo encontrado:", data.sha);
 
         const updatedContent = btoa(JSON.stringify(accounts, null, 2));
+        console.log("Conteúdo atualizado (Base64):", updatedContent);
 
         const updateResponse = await fetch(url, {
             method: "PUT",
@@ -64,16 +67,17 @@ async function updateAccounts(accounts) {
             body: JSON.stringify({
                 message: "Atualizando contas",
                 content: updatedContent,
-                sha: sha
+                sha: data.sha
             })
         });
 
-        if (!updateResponse.ok) throw new Error(`Erro ao atualizar contas: ${updateResponse.status}`);
-        console.log("Contas atualizadas com sucesso!");
+        if (!updateResponse.ok) throw new Error(`Erro ao atualizar contas: ${updateResponse.status} - ${updateResponse.statusText}`);
+        console.log("Contas atualizadas com sucesso no GitHub!");
     } catch (error) {
         console.error("Erro ao atualizar contas:", error);
     }
 }
+
 
 // Criar Conta
 async function createAccount() {
