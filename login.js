@@ -1,7 +1,7 @@
 const repoOwner = "ardanraven"; // Nome do usuário no GitHub
 const repoName = "Biblioteca-Oculta"; // Nome do repositório
 const filePath = "accounts.json"; // Caminho do arquivo no repositório
-const githubToken = "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"; // Token gerado no GitHub
+const githubToken = "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"; // Token gerado no GitHub
 
 async function getAccounts() {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
