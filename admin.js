@@ -1,7 +1,7 @@
 const repoOwner = "ardanraven"; // Substitua pelo seu nome de usuário no GitHub
 const repoName = "Biblioteca-Oculta"; // Substitua pelo nome do seu repositório
 const filePath = "accounts.json"; // Caminho do arquivo no repositório
-const githubToken = "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"; // Substitua pelo seu token do GitHub
+const githubToken = "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"; // Substitua pelo seu token do GitHub
 const adminPassword = "judas989"; // Senha do admin
 
 // Login do Admin
