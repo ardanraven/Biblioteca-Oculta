@@ -1,20 +1,16 @@
-const repoOwner = "ardanraven"; // Nome do seu usuário no GitHub
-const repoName = "Biblioteca-Oculta"; // Nome do repositório
-const filePath = "accounts.json"; // Arquivo de contas no repositório
-const githubToken = "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"; // Token gerado no GitHub
+const repoOwner = "ardanraven"; // Substitua pelo seu nome de usuário no GitHub
+const repoName = "Biblioteca-Oculta"; // Substitua pelo nome do seu repositório
+const filePath = "accounts.json"; // Caminho do arquivo no repositório
+const githubToken = "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"; // Substitua pelo seu token do GitHub
 const adminPassword = "judas989"; // Senha do admin
 
 // Login do Admin
 function loginAdmin() {
     const inputPassword = document.getElementById("admin-password").value;
-    console.log("Senha digitada:", inputPassword);
-
     if (inputPassword === adminPassword) {
-        console.log("Senha correta! Acessando painel...");
         document.getElementById("admin-login-section").style.display = "none";
         document.getElementById("admin-panel-section").style.display = "block";
     } else {
-        console.log("Senha incorreta!");
         document.getElementById("admin-error-message").innerText = "Senha incorreta!";
     }
 }
@@ -22,47 +18,61 @@ function loginAdmin() {
 // Obter Contas
 async function getAccounts() {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    
-    const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${githubToken}`,
-            Accept: "application/vnd.github.v3+json"
-        }
-    });
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${githubToken}`,
+                Accept: "application/vnd.github.v3+json"
+            }
+        });
 
-    const data = await response.json();
-    const content = atob(data.content); // Decodifica o conteúdo Base64
-    console.log("Contas obtidas:", content);
-    return JSON.parse(content); // Retorna o conteúdo JSON
+        if (!response.ok) throw new Error(`Erro ao buscar contas: ${response.status}`);
+        const data = await response.json();
+        const content = atob(data.content);
+        console.log("Contas obtidas:", JSON.parse(content));
+        return JSON.parse(content); // Retorna o conteúdo JSON
+    } catch (error) {
+        console.error("Erro ao obter contas:", error);
+        return [];
+    }
 }
 
 // Atualizar Contas
 async function updateAccounts(accounts) {
     const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${githubToken}`,
-            Accept: "application/vnd.github.v3+json"
-        }
-    });
-    const data = await response.json();
-    const sha = data.sha;
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${githubToken}`,
+                Accept: "application/vnd.github.v3+json"
+            }
+        });
+        if (!response.ok) throw new Error(`Erro ao buscar SHA do arquivo: ${response.status}`);
+        
+        const data = await response.json();
+        const sha = data.sha;
 
-    const updatedContent = btoa(JSON.stringify(accounts, null, 2));
+        const updatedContent = btoa(JSON.stringify(accounts, null, 2));
 
-    await fetch(url, {
-        method: "PUT",
-        headers: {
-            Authorization: `Bearer ${githubToken}`,
-            Accept: "application/vnd.github.v3+json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: "Atualizando contas",
-            content: updatedContent,
-            sha: sha
-        })
-    });
+        const updateResponse = await fetch(url, {
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${githubToken}`,
+                Accept: "application/vnd.github.v3+json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: "Atualizando contas",
+                content: updatedContent,
+                sha: sha
+            })
+        });
+
+        if (!updateResponse.ok) throw new Error(`Erro ao atualizar contas: ${updateResponse.status}`);
+        console.log("Contas atualizadas com sucesso!");
+    } catch (error) {
+        console.error("Erro ao atualizar contas:", error);
+    }
 }
 
 // Criar Conta
@@ -85,11 +95,16 @@ async function createAccount() {
         expiration: expirationDate.toISOString()
     };
 
-    const accounts = await getAccounts();
-    accounts.push(newAccount);
-    await updateAccounts(accounts);
+    try {
+        const accounts = await getAccounts();
+        accounts.push(newAccount);
+        await updateAccounts(accounts);
 
-    alert(`Conta criada com sucesso!\nUsuário: ${username}\nSenha: ${password}`);
+        document.getElementById("generated-password").innerText = `Conta criada com sucesso!\nUsuário: ${username}\nSenha: ${password}`;
+        updateAccountList();
+    } catch (error) {
+        console.error("Erro ao criar conta:", error);
+    }
 }
 
 // Gerar Senha
@@ -101,3 +116,32 @@ function generatePassword(length = 8) {
     }
     return password;
 }
+
+// Atualizar Lista de Contas
+async function updateAccountList() {
+    const accountList = document.getElementById("active-accounts");
+    accountList.innerHTML = "";
+
+    try {
+        const accounts = await getAccounts();
+        const now = new Date();
+
+        accounts.forEach(account => {
+            const expirationDate = new Date(account.expiration);
+            if (expirationDate > now) {
+                const listItem = document.createElement("div");
+                listItem.classList.add("account-item");
+                listItem.innerHTML = `
+                    <p>Usuário: ${account.username}</p>
+                    <p>Expira em: ${expirationDate.toLocaleDateString()}</p>
+                `;
+                accountList.appendChild(listItem);
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao atualizar lista de contas:", error);
+    }
+}
+
+// Atualiza a lista ao carregar a página
+updateAccountList();
