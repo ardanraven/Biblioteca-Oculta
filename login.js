@@ -1,55 +1,45 @@
-const repoOwner = "ardanraven"; // Nome do usuário no GitHub
-const repoName = "Biblioteca-Oculta"; // Nome do repositório
-const filePath = "accounts.json"; // Caminho do arquivo no repositório
-const githubToken = "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"; // Token gerado no GitHub
-
-async function getAccounts() {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    try {
-        const response = await fetch(url, {
-            headers: {
-                Authorization: `Bearer ${githubToken}`,
-                Accept: "application/vnd.github.v3+json"
-            }
-        });
-
-        if (!response.ok) throw new Error(`Erro ao buscar contas: ${response.status}`);
-        const data = await response.json();
-        const content = atob(data.content);
-        return JSON.parse(content);
-    } catch (error) {
-        console.error("Erro ao obter contas:", error);
-        return [];
-    }
-}
-
-async function login() {
+function login() {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
+    const verificationCode = document.getElementById("verificationCode").value;
 
-    try {
-        const accounts = await getAccounts();
-        const userAccount = accounts.find(acc => acc.username === username);
+    // Usuário e senha fixos
+    const userFixed = "admin";
+    const passFixed = "oculta2025";
 
-        if (userAccount) {
-            const now = new Date();
-            if (new Date(userAccount.expiration) > now && userAccount.password === password) {
-                localStorage.setItem("auth", "true");
-                window.location.href = "index.html";
-            } else if (new Date(userAccount.expiration) <= now) {
-                document.getElementById("error-message").innerText = "Conta expirada!";
-            } else {
-                document.getElementById("error-message").innerText = "Senha incorreta!";
-            }
+    // Códigos de verificação variáveis para cada mês
+    const codes = {
+        0: "947312",  // Janeiro
+        1: "385726",  // Fevereiro
+        2: "628491",  // Março
+        3: "714953",  // Abril
+        4: "259684",  // Maio
+        5: "837415",  // Junho
+        6: "190537",  // Julho
+        7: "573829",  // Agosto
+        8: "462918",  // Setembro
+        9: "395672",  // Outubro
+        10: "841256", // Novembro
+        11: "720384"  // Dezembro
+    };
+
+    // Obtém o código correto para o mês atual
+    const currentMonth = new Date().getMonth();
+    const correctCode = codes[currentMonth];
+
+    if (username === userFixed && password === passFixed) {
+        if (verificationCode === correctCode) {
+            localStorage.setItem("auth", "true");
+            window.location.href = "index.html";
         } else {
-            document.getElementById("error-message").innerText = "Usuário não encontrado!";
+            document.getElementById("error-message").innerText = "Código de verificação incorreto!";
         }
-    } catch (error) {
-        console.error("Erro ao fazer login:", error);
+    } else {
+        document.getElementById("error-message").innerText = "Usuário ou senha incorretos!";
     }
 }
 
-// Proteção para páginas restritas
+// Bloqueia o site se não estiver autenticado
 if (window.location.pathname.includes("index.html")) {
     if (localStorage.getItem("auth") !== "true") {
         window.location.href = "login.html";
