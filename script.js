@@ -1,90 +1,100 @@
-// Verifica se o usuário está autenticado antes de carregar a biblioteca
-const currentMonth = new Date().getMonth();
-const storedMonth = localStorage.getItem("month");
+// Configuração do Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBAtmQnb8pNUka-Li7EnyWnMSgzRIZ3-Dw",
+  authDomain: "loginsbiblioteca.firebaseapp.com",
+  projectId: "loginsbiblioteca",
+  storageBucket: "loginsbiblioteca.appspot.com",
+  messagingSenderId: "750396903514",
+  appId: "1:750396903514:web:a22d0e3a3f61778173c863",
+  measurementId: "G-1SCRFQ6ZZ7"
+};
 
-if (storedMonth === null || parseInt(storedMonth) !== currentMonth) {
-    localStorage.removeItem("auth"); // Remove o login
-    localStorage.setItem("month", currentMonth); // Atualiza o mês salvo
-    window.location.href = "login.html"; // Redireciona para login
+// Inicializa o Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
+const auth = firebase.auth();
 
-if (localStorage.getItem("auth") !== "true") {
-    window.location.href = "login.html"; // Redireciona para o login
-}
-
-// Links do Apps Script para as bibliotecas
-const scriptUrl = "https://script.google.com/macros/s/AKfycbz2KCdiyX_2vLjL2FykazpJegHexdWbQHMprc0DbFXVvrQ62d1VrG5Y21ZYj4YJfJb3UQ/exec"; // Biblioteca principal
-const scriptUrlVariados = "https://script.google.com/macros/s/AKfycbyta87I-xp_BTLtpt7jZl29xR9t2GLsDvVDZfSY_Muqa7WB3d3-9nwFClcQntAeKrqxcQ/exec"; // Biblioteca de variados
-
-let pdfData = []; // Variável para armazenar os PDFs
-const btnVariados = document.getElementById("variados");
-const btnVoltar = document.getElementById("voltar");
-
-// Função para buscar e exibir PDFs
-async function getPdfList(url) {
-    try {
-        let response = await fetch(url);
-        pdfData = await response.json();
-
-        console.log("Dados carregados:", pdfData); // Log para depuração
-        displayPdfList(pdfData); // Exibir os livros
-
-    } catch (error) {
-        console.error("Erro ao buscar arquivos:", error);
+// --- MÉTODO DE AUTENTICAÇÃO OFICIAL DO FIREBASE ---
+// O onAuthStateChanged verifica DIRETAMENTE com o Firebase se há um utilizador logado.
+// A verificação antiga do localStorage foi REMOVIDA.
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // UTILIZADOR ESTÁ LOGADO!
+        // A lógica da biblioteca é executada aqui, e a página não será redirecionada.
+        loadLibrary();
+    } else {
+        // NÃO HÁ UTILIZADOR LOGADO!
+        // Redireciona para a página de login de forma segura.
+        window.location.href = 'login.html';
     }
-}
-
-// Exibir os PDFs na tela
-function displayPdfList(data) {
-    let pdfList = document.getElementById("pdf-list");
-    pdfList.innerHTML = ""; // Limpa a lista antes de carregar novos itens
-
-    data.forEach(file => {
-        let pdfItem = document.createElement("div");
-        pdfItem.classList.add("pdf-item");
-
-        pdfItem.innerHTML = `
-            <img src="${file.thumbnail}" alt="Capa de ${file.name}" class="pdf-thumbnail">
-            <p>${file.name}</p>
-            <a href="${file.url}" target="_blank">📖 Visualizar</a>
-        `;
-
-        pdfList.appendChild(pdfItem);
-    });
-}
-
-// Função de pesquisa
-document.getElementById("search").addEventListener("input", function() {
-    let searchTerm = this.value.toLowerCase();
-    let filteredData = pdfData.filter(file => file.name.toLowerCase().includes(searchTerm));
-    displayPdfList(filteredData);
 });
 
-// Carregar PDFs da biblioteca principal no início
-getPdfList(scriptUrl);
 
-// Alternar para a pasta de variados
-function loadVariados() {
-    console.log("Carregando a pasta de variados...");
-    
-    btnVariados.style.display = "none";
-    btnVoltar.style.display = "inline-block";
+// ---- LÓGICA DA BIBLIOTECA (AGORA DENTRO DE UMA FUNÇÃO) ----
 
-    getPdfList(scriptUrlVariados); // Carregar PDFs da nova pasta
+function loadLibrary() {
+    // URLs dos seus Google Apps Scripts
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbz2KCdiyX_2vLjL2FykazpJegHexdWbQHMprc0DbFXVvrQ62d1VrG5Y21ZYj4YJfJb3UQ/exec";
+    const scriptUrlVariados = "https://script.google.com/macros/s/AKfycbyta87I-xp_BTLtpt7jZl29xR9t2GLsDvVDZfSY_Muqa7WB3d3-9nwFClcQntAeKrqxcQ/exec";
+
+    let pdfData = [];
+
+    async function getPdfList(url) {
+        const loadingAnimation = document.getElementById("div1");
+        if (loadingAnimation) loadingAnimation.style.display = 'flex';
+        
+        try {
+            const response = await fetch(url);
+            pdfData = await response.json();
+            displayPdfList(pdfData);
+        } catch (error) {
+            console.error("Erro ao buscar ficheiros:", error);
+            document.getElementById("pdf-list").innerHTML = "<p>Ocorreu um erro ao carregar os livros.</p>";
+        } finally {
+            if (loadingAnimation) loadingAnimation.style.display = 'none';
+        }
+    }
+
+    function displayPdfList(data) {
+        const pdfList = document.getElementById("pdf-list");
+        if (!pdfList) return;
+        pdfList.innerHTML = "";
+        
+        if (data.length === 0) {
+            pdfList.innerHTML = "<p>Nenhum livro encontrado.</p>";
+            return;
+        }
+        
+        data.forEach(file => {
+            const pdfItem = document.createElement("div");
+            pdfItem.classList.add("pdf-item");
+            pdfItem.innerHTML = `
+                <img src="${file.thumbnail || 'favicon.png'}" alt="Capa de ${file.name}" class="pdf-thumbnail" onerror="this.onerror=null;this.src='favicon.png';">
+                <p>${file.name}</p>
+                <a href="${file.url}" target="_blank">📖 Visualizar</a>
+            `;
+            pdfList.appendChild(pdfItem);
+        });
+    }
+
+    const searchInput = document.getElementById("search");
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredData = pdfData.filter(file => file.name.toLowerCase().includes(searchTerm));
+            displayPdfList(filteredData);
+        });
+    }
+
+    // Carrega a lista inicial de PDFs
+    getPdfList(scriptUrl);
 }
 
-// Voltar para a biblioteca principal
-function loadPrincipal() {
-    console.log("Voltando para a biblioteca principal...");
-
-    btnVariados.style.display = "inline-block";
-    btnVoltar.style.display = "none";
-
-    getPdfList(scriptUrl); // Carregar PDFs da biblioteca principal
-}
-
-// Logout do usuário
+// Função de logout que desconecta do Firebase
 function logout() {
-    localStorage.removeItem("auth"); // Remove a autenticação
-    window.location.href = "login.html"; // Redireciona para a tela de login
+    auth.signOut().then(() => {
+        // O observador onAuthStateChanged vai detetar a mudança e redirecionar automaticamente.
+        console.log("Logout realizado com sucesso.");
+    });
 }

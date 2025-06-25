@@ -1,47 +1,59 @@
-function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const verificationCode = document.getElementById("verificationCode").value;
+// Configuração da sua aplicação Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBAtmQnb8pNUka-Li7EnyWnMSgzRIZ3-Dw",
+  authDomain: "loginsbiblioteca.firebaseapp.com",
+  projectId: "loginsbiblioteca",
+  storageBucket: "loginsbiblioteca.appspot.com",
+  messagingSenderId: "750396903514",
+  appId: "1:750396903514:web:a22d0e3a3f61778173c863",
+  measurementId: "G-1SCRFQ6ZZ7"
+};
 
-    // Usuário e senha fixos
-    const userFixed = "decorus";
-    const passFixed = "@Lucem2025#";
-
-    // Códigos de verificação variáveis para cada mês
-    const codes = {
-        0: "483721",  // Janeiro
-        1: "150839",  // Fevereiro
-        2: "902374",  // Março
-        3: "617205",  // Abril
-        4: "328490",  // Maio
-        5: "741683",  // Junho
-        6: "296104",  // Julho
-        7: "875312",  // Agosto
-        8: "063958",  // Setembro
-        9: "519740",  // Outubro
-        10: "384216", // Novembro
-        11: "207931"  // Dezembro
-    };
-
-    // Obtém o código correto para o mês atual
-    const currentMonth = new Date().getMonth();
-    const correctCode = codes[currentMonth];
-
-    if (username === userFixed && password === passFixed) {
-        if (verificationCode === correctCode) {
-            localStorage.setItem("auth", "true");
-            window.location.href = "index.html";
-        } else {
-            document.getElementById("error-message").innerText = "Código de verificação incorreto!";
-        }
-    } else {
-        document.getElementById("error-message").innerText = "Usuário ou senha incorretos!";
-    }
+// Inicializa o Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// Bloqueia o site se não estiver autenticado
-if (window.location.pathname.includes("index.html")) {
-    if (localStorage.getItem("auth") !== "true") {
-        window.location.href = "login.html";
+function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const errorMessage = document.getElementById("error-message");
+
+    if (!email || !password) {
+        errorMessage.innerText = "Por favor, insira o email e a senha.";
+        return;
     }
+
+    errorMessage.style.color = "orange";
+    errorMessage.innerText = "A verificar credenciais...";
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            return db.collection("users").doc(user.uid).get();
+        })
+        .then((doc) => {
+            if (doc.exists) {
+                const userData = doc.data();
+                const expirationDate = userData.expirationDate.toDate();
+                if (new Date() < expirationDate) {
+                    // SUCESSO! Apenas redireciona.
+                    window.location.href = "index.html";
+                } else {
+                    errorMessage.style.color = "red";
+                    errorMessage.innerText = "O seu acesso expirou. Fale com o administrador.";
+                    auth.signOut();
+                }
+            } else {
+                errorMessage.style.color = "red";
+                errorMessage.innerText = "Erro: Dados de assinatura não encontrados.";
+                auth.signOut();
+            }
+        })
+        .catch((error) => {
+            errorMessage.style.color = "red";
+            errorMessage.innerText = "Email ou senha incorretos!";
+        });
 }

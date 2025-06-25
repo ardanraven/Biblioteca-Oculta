@@ -1,157 +1,108 @@
-const repoOwner = "ardanraven"; // Substitua pelo seu nome de usuário no GitHub
-const repoName = "Biblioteca-Oculta"; // Substitua pelo nome do seu repositório
-const filePath = "accounts.json"; // Caminho do arquivo no repositório
-const githubToken = "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"; // Substitua pelo seu token do GitHub
-const adminPassword = "judas989"; // Senha do admin
+// Configuração do seu app do Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBAtmQnb8pNUka-Li7EnyWnMSgzRIZ3-Dw",
+  authDomain: "loginsbiblioteca.firebaseapp.com",
+  projectId: "loginsbiblioteca",
+  storageBucket: "loginsbiblioteca.appspot.com",
+  messagingSenderId: "750396903514",
+  appId: "1:750396903514:web:a22d0e3a3f61778173c863",
+  measurementId: "G-1SCRFQ6ZZ7"
+};
 
-// Login do Admin
-function loginAdmin() {
-    const inputPassword = document.getElementById("admin-password").value;
-    if (inputPassword === adminPassword) {
-        document.getElementById("admin-login-section").style.display = "none";
-        document.getElementById("admin-panel-section").style.display = "block";
-    } else {
-        document.getElementById("admin-error-message").innerText = "Senha incorreta!";
-    }
+// Inicializa o Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-// Obter Contas
-async function getAccounts() {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    try {
-        const response = await fetch(url, {
-            headers: {
-                headers: {
-                    Authorization: `token ${githubToken}`,
-                    Accept: "application/vnd.github.v3+json"
-                }
-                
-            }
-        });
+/**
+ * Cria um novo usuário no Firebase Authentication e salva a data de validade no Firestore.
+ */
+function createUser() {
+    const email = document.getElementById('newUserEmail').value;
+    const password = document.getElementById('newUserPassword').value;
+    const validityMonths = parseInt(document.getElementById('validity').value);
+    const messageEl = document.getElementById('admin-message');
 
-        if (!response.ok) throw new Error(`Erro ao buscar contas: ${response.status}`);
-        const data = await response.json();
-        const content = atob(data.content);
-        console.log("Contas obtidas:", JSON.parse(content));
-        return JSON.parse(content); // Retorna o conteúdo JSON
-    } catch (error) {
-        console.error("Erro ao obter contas:", error);
-        return [];
+    // Validação de entrada
+    if (!email || !password) {
+        messageEl.textContent = "Erro: Por favor, preencha o email e a senha.";
+        messageEl.style.color = "red";
+        return;
     }
-}
-
-// Atualizar Contas
-async function updateAccounts(accounts) {
-    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-    try {
-        console.log("Buscando o SHA do arquivo...");
-        const response = await fetch(url, {
-            headers: {
-                headers: {
-                    Authorization: `token ${githubToken}`,
-                    Accept: "application/vnd.github.v3+json"
-                }
-                
-            }
-        });
-
-        if (!response.ok) throw new Error(`Erro ao buscar SHA do arquivo: ${response.status} - ${response.statusText}`);
-
-        const data = await response.json();
-        console.log("SHA do arquivo encontrado:", data.sha);
-
-        const updatedContent = btoa(JSON.stringify(accounts, null, 2));
-        console.log("Conteúdo atualizado (Base64):", updatedContent);
-
-        const updateResponse = await fetch(url, {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${githubToken}`,
-                Accept: "application/vnd.github.v3+json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                message: "Atualizando contas",
-                content: updatedContent,
-                sha: data.sha
-            })
-        });
-
-        if (!updateResponse.ok) throw new Error(`Erro ao atualizar contas: ${updateResponse.status} - ${updateResponse.statusText}`);
-        console.log("Contas atualizadas com sucesso no GitHub!");
-    } catch (error) {
-        console.error("Erro ao atualizar contas:", error);
-    }
-}
-
-
-// Criar Conta
-async function createAccount() {
-    const username = document.getElementById("username").value;
-    const validity = parseInt(document.getElementById("validity").value);
-
-    if (!username) {
-        alert("Por favor, insira um nome de usuário.");
+    if (password.length < 6) {
+        messageEl.textContent = "Erro: A senha deve ter no mínimo 6 caracteres.";
+        messageEl.style.color = "red";
         return;
     }
 
-    const password = generatePassword();
-    const expirationDate = new Date();
-    expirationDate.setMonth(expirationDate.getMonth() + validity);
+    messageEl.textContent = "Criando usuário...";
+    messageEl.style.color = "orange";
 
-    const newAccount = {
-        username: username,
-        password: password,
-        expiration: expirationDate.toISOString()
-    };
+    // Cria o usuário no serviço de Autenticação do Firebase
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            const expirationDate = new Date();
+            expirationDate.setMonth(expirationDate.getMonth() + validityMonths);
 
-    try {
-        const accounts = await getAccounts();
-        accounts.push(newAccount);
-        await updateAccounts(accounts);
-
-        document.getElementById("generated-password").innerText = `Conta criada com sucesso!\nUsuário: ${username}\nSenha: ${password}`;
-        updateAccountList();
-    } catch (error) {
-        console.error("Erro ao criar conta:", error);
-    }
-}
-
-// Gerar Senha
-function generatePassword(length = 8) {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let password = "";
-    for (let i = 0; i < length; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-}
-
-// Atualizar Lista de Contas
-async function updateAccountList() {
-    const accountList = document.getElementById("active-accounts");
-    accountList.innerHTML = "";
-
-    try {
-        const accounts = await getAccounts();
-        const now = new Date();
-
-        accounts.forEach(account => {
-            const expirationDate = new Date(account.expiration);
-            if (expirationDate > now) {
-                const listItem = document.createElement("div");
-                listItem.classList.add("account-item");
-                listItem.innerHTML = `
-                    <p>Usuário: ${account.username}</p>
-                    <p>Expira em: ${expirationDate.toLocaleDateString()}</p>
-                `;
-                accountList.appendChild(listItem);
+            // Salva os detalhes do usuário no banco de dados Firestore
+            return db.collection("users").doc(user.uid).set({
+                email: email,
+                expirationDate: firebase.firestore.Timestamp.fromDate(expirationDate),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        })
+        .then(() => {
+            messageEl.textContent = `Usuário ${email} criado com sucesso!`;
+            messageEl.style.color = "lightgreen";
+            document.getElementById('newUserEmail').value = '';
+            document.getElementById('newUserPassword').value = '';
+            loadUsers(); // Atualiza a lista de usuários na tela
+        })
+        .catch((error) => {
+            if (error.code == 'auth/email-already-in-use') {
+                messageEl.textContent = "Erro: Este email já está cadastrado.";
+            } else {
+                messageEl.textContent = "Erro: " + error.message;
             }
+            messageEl.style.color = "red";
         });
-    } catch (error) {
-        console.error("Erro ao atualizar lista de contas:", error);
-    }
 }
 
-// Atualiza a lista ao carregar a página
-updateAccountList();
+/**
+ * Carrega e exibe a lista de usuários cadastrados no Firestore.
+ */
+function loadUsers() {
+    const userListDiv = document.getElementById('userList');
+    if (!userListDiv) return; // Checagem de segurança
+    
+    userListDiv.innerHTML = 'Carregando...'; 
+    
+    db.collection("users").orderBy("createdAt", "desc").get().then((querySnapshot) => {
+        userListDiv.innerHTML = ''; // Limpa a lista antes de preencher
+        if (querySnapshot.empty) {
+            userListDiv.innerHTML = "<p>Nenhum usuário cadastrado ainda.</p>";
+            return;
+        }
+        querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            const expiration = userData.expirationDate.toDate().toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            const userEl = document.createElement('p');
+            userEl.textContent = `📧 Email: ${userData.email} | ⏳ Expira em: ${expiration}`;
+            userListDiv.appendChild(userEl);
+        });
+    }).catch(err => {
+        console.error("Erro ao carregar usuários: ", err);
+        userListDiv.innerHTML = "<p style='color:red;'>Erro ao carregar lista de usuários.</p>";
+    });
+}
+
+// Garante que o código só rode depois que a página carregou completamente
+window.onload = function() {
+    // É uma boa prática deslogar de qualquer conta no painel de admin
+    // para evitar conflitos de permissão no futuro.
+    auth.signOut(); 
+    loadUsers();
+};

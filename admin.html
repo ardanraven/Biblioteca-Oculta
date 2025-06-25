@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Admin - Biblioteca Decorus</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Estilos específicos para o painel de admin */
+        body {
+            cursor: default;
+        }
+        button, a, input, textarea, select {
+            cursor: pointer;
+        }
+        .admin-container {
+            width: 90%;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 25px;
+            background: var(--cor-secundaria);
+            border-radius: 12px;
+            border: 2px solid var(--cor-clara);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .admin-container h1, .admin-container h2 {
+            color: var(--texto-claro);
+            text-shadow: 2px 2px 10px rgba(255, 255, 255, 0.3);
+        }
+        .admin-container input, .admin-container select {
+             width: calc(100% - 24px);
+             padding: 12px;
+             margin: 8px 0;
+             border: 1px solid var(--cor-clara);
+             border-radius: 8px;
+             background: var(--cor-primaria);
+             color: var(--texto-claro);
+             font-size: 16px;
+        }
+        .admin-container button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            width: 100%;
+            font-size: 18px;
+        }
+        #userList {
+            margin-top: 25px;
+            padding: 15px;
+            background: var(--cor-primaria);
+            border-radius: 8px;
+            text-align: left;
+        }
+        #userList p {
+            border-bottom: 1px solid var(--cor-secundaria);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        #admin-message {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>🔮 Painel de Administração</h1>
+
+        <h2>Criar Novo Acesso</h2>
+        <input type="email" id="newUserEmail" placeholder="Email do usuário" autocomplete="off">
+        <input type="password" id="newUserPassword" placeholder="Senha para o usuário" autocomplete="off">
+        <select id="validity">
+            <option value="1">Válido por 1 Mês</option>
+            <option value="2">Válido por 2 Meses</option>
+            <option value="3">Válido por 3 Meses</option>
+        </select>
+        <button onclick="createUser()">✨ Criar Acesso</button>
+        <p id="admin-message"></p>
+
+        <h2>Usuários Ativos</h2>
+        <div id="userList">Carregando usuários...</div>
+    </div>
+
+    <!-- SDKs do Firebase (versão de compatibilidade para facilitar a integração) -->
+    <!-- Carregados ANTES do seu script admin.js -->
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Script do Painel de Admin (carregado por último) -->
+    <script src="admin.js"></script>
+</body>
+</html>
